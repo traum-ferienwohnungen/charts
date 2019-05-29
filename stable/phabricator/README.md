@@ -53,7 +53,7 @@ The following table lists the configurable parameters of the Phabricator chart a
 | `global.imagePullSecrets`              | Global Docker registry secret names as an array | `[]` (does not add image pull secrets to deployed pods) |
 | `image.registry`                       | Phabricator image registry                   | `docker.io`                                              |
 | `image.repository`                     | Phabricator image name                       | `bitnami/phabricator`                                    |
-| `image.tag`                            | Phabricator image tag                        | `{VERSION}`                                              |
+| `image.tag`                            | Phabricator image tag                        | `{TAG_NAME}`                                             |
 | `image.pullPolicy`                     | Image pull policy                            | `Always` if `imageTag` is `latest`, else `IfNotPresent`  |
 | `image.pullSecrets`                    | Specify docker-registry secret names as an array                   | `[]` (does not add image pull secrets to deployed pods)                                                    |
 | `phabricatorHost`                      | Phabricator host to create application URLs  | `nil`                                                    |
@@ -103,6 +103,9 @@ The following table lists the configurable parameters of the Phabricator chart a
 | `metrics.image.pullSecrets`            | Specify docker-registry secret names as an array | `[]` (does not add image pull secrets to deployed pods)      |
 | `metrics.podAnnotations`               | Additional annotations for Metrics exporter pod  | `{prometheus.io/scrape: "true", prometheus.io/port: "9117"}` |
 | `metrics.resources`                    | Exporter resource requests/limit                 | {}                                                    |
+| `nodeSelector`                         | Node labels for pod assignment                   | `nil`                                                  |
+| `affinity`                             | Node/pod affinities                              | `nil`                                                  |
+| `tolerations`                          | List of node taints to tolerate                  | `nil`                                                  |
 
 The above parameters map to the env variables defined in [bitnami/phabricator](http://github.com/bitnami/bitnami-docker-phabricator). For more information please refer to the [bitnami/phabricator](http://github.com/bitnami/bitnami-docker-phabricator) image documentation.
 
@@ -137,6 +140,12 @@ $ helm install --name my-release -f values.yaml stable/phabricator
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
+
+### [Rolling VS Immutable tags](https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/)
+
+It is strongly recommended to use immutable tags in a production environment. This ensures your deployment does not change automatically if the same tag is updated with a different image.
+
+Bitnami will release a new chart updating its containers if a new version of the main container, significant changes, or critical vulnerabilities exist.
 
 ## Persistence
 

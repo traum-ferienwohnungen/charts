@@ -82,14 +82,14 @@ You can also add generic environment variables such as proxy or private pypi:
 ```yaml
 airflow:
   config:
-    AIRFLOW__CORE__EXPOSE_CONFIG: True
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: True
     PIP_INDEX_URL: http://pypi.mycompany.com/
     PIP_TRUSTED_HOST: pypi.mycompany.com
     HTTP_PROXY: http://proxy.mycompany.com:1234
     HTTPS_PROXY: http://proxy.mycompany.com:1234
 ```
 
-If you are using a private image for your dags (see [Embedded Dags](#embedded-dags)) 
+If you are using a private image for your dags (see [Embedded Dags](#embedded-dags))
 or for use with the KubernetesPodOperator (available in version 1.10.0), then add
 an image pull secret to the airflow config:
 ```yaml
@@ -124,6 +124,20 @@ Example:
 ```yaml
 airflow:
   variables: '{ "environment": "dev" }'
+```
+
+#### Airflow pools
+
+Some systems can get overwhelmed when too many processes hit them at the same time.
+Airflow pools can be used to limit the execution parallelism on arbitrary sets of tasks. For more info see the [airflow
+documentation](https://airflow.apache.org/concepts.html#pools).
+The feature to import pools has only been added in airflow 1.10.2.
+These pools will be automatically imported by the scheduler when it starts up.
+
+Example:
+```yaml
+airflow:
+  pools: '{ "example": { "description": "This is an example of a pool", "slots": 2 } }'
 ```
 
 ### Worker Statefulset
@@ -281,11 +295,13 @@ The following table lists the configurable parameters of the Airflow chart and t
 | Parameter                                | Description                                             | Default                   |
 |------------------------------------------|---------------------------------------------------------|---------------------------|
 | `airflow.fernetKey`                      | Ferney key (see `values.yaml` for example)              | (auto generated)          |
-| `airflow.service.type`                   | services type                                           | `ClusterIP`               |
+| `airflow.service.type`                   | service type for Airflow UI                             | `ClusterIP`               |
+| `airflow.service.annotations`            | (optional) service annotations for Airflow UI           | `{}`                      |
+| `airflow.service.externalPort`           | (optional) external port for Airflow UI                 | `8080`                    |
 | `airflow.executor`                       | the executor to run                                     | `Celery`                  |
 | `airflow.initRetryLoop`                  | max number of retries during container init             |                           |
 | `airflow.image.repository`               | Airflow docker image                                    | `puckel/docker-airflow`   |
-| `airflow.image.tag`                      | Airflow docker tag                                      | `1.10.0-4`                |
+| `airflow.image.tag`                      | Airflow docker tag                                      | `1.10.2`                  |
 | `airflow.image.pullPolicy`               | Image pull policy                                       | `IfNotPresent`            |
 | `airflow.image.pullSecret`               | Image pull secret                                       |                           |
 | `airflow.schedulerNumRuns`               | -1 to loop indefinitively, 1 to restart after each exec |                           |
@@ -299,6 +315,9 @@ The following table lists the configurable parameters of the Airflow chart and t
 | `airflow.extraVolumeMounts`              | additional volumeMounts to the main container in scheduler, worker & web pods | `[]`|
 | `airflow.extraVolumes`                   | additional volumes for the scheduler, worker & web pods | `[]`                      |
 | `flower.resources`                       | custom resource configuration for flower pod            | `{}`                      |
+| `flower.service.type`                    | service type for Flower UI                              | `ClusterIP`               |
+| `flower.service.annotations`             | (optional) service annotations for Flower UI            | `{}`                      |
+| `flower.service.externalPort`            | (optional) external port for Flower UI                  | `5555`                    |
 | `web.resources`                          | custom resource configuration for web pod               | `{}`                      |
 | `web.initialStartupDelay`                | amount of time webserver pod should sleep before initializing webserver             | `60`  |
 | `web.initialDelaySeconds`                | initial delay on livenessprobe before checking if webserver is available    | `360` |
@@ -367,6 +386,9 @@ The following table lists the configurable parameters of the Airflow chart and t
 | `serviceMonitor.interval`                | Interval at which metrics should be scraped             | `30s`                     |
 | `serviceMonitor.path`                    | The path at which the metrics should be scraped         | `/admin/metrics`          |
 | `serviceMonitor.selector`                | label Selector for Prometheus to find ServiceMonitors   | `prometheus: kube-prometheus` |
+| `prometheusRule.enabled`                 | enable prometheus rule                                  | `false`                   |
+| `prometheusRule.groups`                  | define alerting rules                                   | `{}`                      |
+| `prometheusRule.additionalLabels`        | add additional labels to the prometheus rule            | `{}`                      |
 
 
 Full and up-to-date documentation can be found in the comments of the `values.yaml` file.
@@ -375,3 +397,5 @@ Full and up-to-date documentation can be found in the comments of the `values.ya
 ### To 2.0.0
 The parameter `workers.pod.annotations` has been renamed to `workers.podAnnotations`.  If using a
 custom values file, rename this parameter.
+### To 2.8.3+
+The parameter `airflow.service.type` no longer applies to the Flower service, but the default of `ClusterIP` has been maintained.  If using a custom values file and have changed the service type, also specify `flower.service.type`.
